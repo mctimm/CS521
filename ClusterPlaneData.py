@@ -13,6 +13,8 @@ arrDelays = dict()
 
 depDelays = dict()
 airPoints = list()
+depCounts = dict()
+arrCounts = dict()
 
 for file in os.listdir("../datafiles/"):
     try:
@@ -32,16 +34,32 @@ for file in os.listdir("../datafiles/"):
         arr = df[df["Dest"] == airport[1]]
         if(len(arr) > 0):
             arrDelays[airport[0]] = arr["ArrDelay"].dropna().mean()
-        else:arrDelays[airport[0]] = 0
+            arrCounts[airport[0]] = arr["ArrDelay"].dropna().count()
+        else:
+            arrDelays[airport[0]] = 0
+            arrCounts[airport[0]] = 0 
         dep =  df[df["Origin"] == airport[1]]
         if(len(dep) > 0):
             depDelays[airport[0]] =dep["DepDelay"].dropna().mean()
-        else: depDelays[airport[0]] = 0
+            depCounts[airport[0]] =dep["DepDelay"].dropna().count()
+        else: 
+            depDelays[airport[0]] = 0
+            depCounts[airport[0]] = 0
         if(math.isnan(depDelays[airport[0]])):
             depDelays[airport[0]] = 0
+            depCounts[airport[0]] = 0
         if(math.isnan(arrDelays[airport[0]])):
             arrDelays[airport[0]] = 0
+            arrCounts[airport[0]] = 0 
         airPoints.append([arrDelays[airport[0]],depDelays[airport[0]]])
+import csv
+dicts = (depDelays, depCounts, arrDelays,arrCounts)
+
+with open('averageDelayData.csv', 'w',newline='') as ofile:
+    writer = csv.writer(ofile, delimiter=' ')
+    writer.writerow(['airport', 'depDelays', 'depCount', 'arrDelay', 'arrCount'])
+    for key in depCounts.keys():
+        writer.writerow([key] + [d[key] for d in dicts])
 
 #use DBSCAN
 X = np.array(airPoints)
@@ -59,10 +77,11 @@ for cluster in clusters:
 	# create scatter of these samples
 	ax.scatter(X[row_ix, 0], X[row_ix, 1])
 #annotate
-for key in depDelays.keys():
-    ax.annotate(key,(arrDelays[key],depDelays[key]))
+#for key in depDelays.keys():
+#    ax.annotate(key,(arrDelays[key],depDelays[key]))
 
 ax.set_ylabel("departure delays")
 ax.set_xlabel("arrival delays")
 # show the plot
 pyplot.show()
+
