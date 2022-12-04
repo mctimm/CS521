@@ -52,10 +52,14 @@ train_data = train_data_total.sample(frac=0.80,random_state=1)
 
 test_data = train_data_total.drop(train_data.index)
 
+test_data =test_data.dropna()
+
 # this drops rows that contain an "na" from the training dataset
 train_data = train_data.dropna()
 
 print(train_data.head(5))
+print("test 5")
+print(test_data.head(5))
 
 
 # Defining the keyword arguments for fastai's TabularList
@@ -103,4 +107,23 @@ learn = tabular_learner(
 
 learn.load("model")
 
-#Do stuff.
+dl = learn.dls.test_dl(test_data)
+pred = learn.get_preds(dl=dl)
+
+total_error = 0
+within5 = 0
+for i in range(1,len(pred[0])):
+    
+    prediction = pred[0][i].item()
+    actual = pred[1][i].item()
+    total_error += abs(prediction-actual)
+    if(abs(prediction-actual) < 5):
+        within5 += 1
+print(total_error)
+print(total_error/len(pred[0]))
+print(within5)
+print(within5/len(pred[0]))
+
+
+
+    
